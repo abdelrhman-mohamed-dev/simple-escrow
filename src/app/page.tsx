@@ -20,6 +20,20 @@ interface Transaction {
 
 const supabase = createClient();
 
+const MY_NUMBER = "01014269976";
+
+// Vodafone Cash wallet fee calculation
+function calcWalletFee(amount: number, partyNumber: string): { fee: number; label: string } {
+  // Vodafone-to-Vodafone (starts with 010): flat 1 EGP
+  const isVodafone = partyNumber.startsWith("010");
+  if (isVodafone) {
+    return { fee: 1, label: "Vodafone to Vodafone" };
+  }
+  // Other wallets: 0.5% (min 1 EGP, max 15 EGP)
+  const fee = Math.min(Math.max(amount * 0.005, 1), 15);
+  return { fee: Math.round(fee * 100) / 100, label: "Transfer to other wallet" };
+}
+
 // Utility for formatting money
 function formatMoney(n: number) {
   return "EGP " + Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -107,12 +121,20 @@ export default function Home() {
     return () => { supabase.removeChannel(channel); };
   }, [fetchTransactions]);
 
+  function getTxTotal(t: Transaction) {
+    if (t.type === "send" && t.method === "wallet") {
+      const { fee } = calcWalletFee(t.amount, t.party);
+      return t.amount + fee;
+    }
+    return t.amount;
+  }
+
   const totalReceived = transactions
     .filter((t) => t.type === "receive")
     .reduce((s, t) => s + t.amount, 0);
   const totalSent = transactions
     .filter((t) => t.type === "send")
-    .reduce((s, t) => s + t.amount, 0);
+    .reduce((s, t) => s + getTxTotal(t), 0);
   const netBalance = totalReceived - totalSent;
 
   function openFlow(type: TransactionType) {
@@ -128,11 +150,16 @@ export default function Home() {
     setFlowStep(null);
   }
 
+  const walletFee = method === "wallet" && flowType === "send" && amount
+    ? calcWalletFee(parseFloat(amount) || 0, party.trim())
+    : null;
+
   async function handleConfirm() {
     const amt = parseFloat(amount);
     if (!description.trim() || isNaN(amt) || amt <= 0 || !party.trim()) return;
 
     setSaving(true);
+
     const { error } = await supabase.from("transactions").insert({
       description: description.trim(),
       amount: amt,
@@ -140,6 +167,7 @@ export default function Home() {
       method,
       party: party.trim(),
     });
+
     setSaving(false);
 
     if (!error) {
@@ -152,7 +180,7 @@ export default function Home() {
   const isReceive = flowType === "receive";
 
   return (
-    <main className="max-w-md mx-auto pt-safe min-h-dvh flex flex-col relative bg-slate-50 overscroll-none overflow-hidden pb-20">
+    <main className="max-w-md mx-auto pt-safe min-h-dvh flex flex-col relative bg-slate-50 overscroll-none pb-20">
       
       {/* Background Decor (Subtle Native Feel) */}
       <div className="absolute top-0 inset-x-0 h-80 bg-gradient-to-b from-indigo-50/50 to-transparent pointer-events-none" />
@@ -336,7 +364,7 @@ export default function Home() {
                     {/* Amount & Date */}
                     <div className="text-right shrink-0">
                        <p className={`text-[15px] font-bold tracking-tight ${t.type === "receive" ? "text-teal-600" : "text-slate-900"}`}>
-                         {t.type === "receive" ? "+" : "-"}{formatMoney(t.amount)}
+                         {t.type === "receive" ? "+" : "-"}{formatMoney(getTxTotal(t))}
                        </p>
                        <p className="text-[11px] text-slate-400 font-medium mt-1">
                           {t.created_at ? timeAgo(t.created_at) : ""}
@@ -497,6 +525,14 @@ export default function Home() {
                               className="w-full pl-12 pr-5 py-4 rounded-[20px] bg-slate-50 border border-slate-200 text-slate-900 font-bold placeholder-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-all text-[15px]"
                             />
                           </div>
+                          <button
+                            type="button"
+                            onClick={() => setParty(MY_NUMBER)}
+                            className="mt-2 ml-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold cursor-pointer active:scale-95 transition-transform"
+                          >
+                            @me
+                            <span className="text-indigo-400 font-mono">{MY_NUMBER}</span>
+                          </button>
                         </div>
                         <div className="relative">
                           <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 px-2">
@@ -574,6 +610,24 @@ export default function Home() {
                            <span className="text-[13px] font-bold text-slate-400 uppercase tracking-wide">Note</span>
                            <span className="text-[15px] font-bold text-slate-900 text-right max-w-[65%]">{description}</span>
                          </div>
+                         {walletFee && (
+                           <>
+                             <div className="w-full h-px bg-slate-200 border-dashed" />
+                             <div className="flex justify-between items-center">
+                               <span className="text-[13px] font-bold text-slate-400 uppercase tracking-wide">Transfer Fee</span>
+                               <span className="text-[15px] font-bold text-rose-500">EGP {walletFee.fee.toFixed(2)}</span>
+                             </div>
+                             <div className="flex justify-between items-center">
+                               <span className="text-[13px] font-bold text-slate-400 uppercase tracking-wide">Fee Type</span>
+                               <span className="text-[13px] font-semibold text-slate-500">{walletFee.label}</span>
+                             </div>
+                             <div className="w-full h-px bg-slate-200 border-dashed" />
+                             <div className="flex justify-between items-center">
+                               <span className="text-[13px] font-bold text-slate-900 uppercase tracking-wide">Total</span>
+                               <span className="text-[17px] font-black text-slate-900">EGP {((parseFloat(amount) || 0) + walletFee.fee).toFixed(2)}</span>
+                             </div>
+                           </>
+                         )}
                        </div>
 
                        <div className="flex gap-3 mt-auto pt-4">
@@ -667,6 +721,31 @@ export default function Home() {
                     <span className="text-[13px] font-bold text-slate-400 uppercase tracking-wide">Note</span>
                     <span className="text-[15px] font-bold text-slate-900 text-right max-w-[65%]">{selectedTx.description}</span>
                   </div>
+                  {selectedTx.type === "send" && selectedTx.method === "wallet" && (() => {
+                    const fee = calcWalletFee(selectedTx.amount, selectedTx.party);
+                    return (
+                      <>
+                        <div className="w-full h-px bg-slate-200 border-dashed" />
+                        <div className="flex justify-between items-center">
+                          <span className="text-[13px] font-bold text-slate-400 uppercase tracking-wide">Amount</span>
+                          <span className="text-[15px] font-bold text-slate-900">EGP {selectedTx.amount.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[13px] font-bold text-slate-400 uppercase tracking-wide">Fee</span>
+                          <span className="text-[15px] font-bold text-rose-500">EGP {fee.fee.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[11px] -mt-2">
+                          <span></span>
+                          <span className="text-slate-400 font-medium">{fee.label}</span>
+                        </div>
+                        <div className="w-full h-px bg-slate-200 border-dashed" />
+                        <div className="flex justify-between items-center">
+                          <span className="text-[13px] font-black text-slate-900 uppercase tracking-wide">Total</span>
+                          <span className="text-[17px] font-black text-slate-900">EGP {(selectedTx.amount + fee.fee).toFixed(2)}</span>
+                        </div>
+                      </>
+                    );
+                  })()}
                   <div className="flex justify-between items-start">
                     <span className="text-[13px] font-bold text-slate-400 uppercase tracking-wide">Trans. ID</span>
                     <span className="text-[13px] font-bold text-slate-400 font-mono text-right max-w-[65%]">#{selectedTx.id.toString().padStart(8, '0')}</span>
