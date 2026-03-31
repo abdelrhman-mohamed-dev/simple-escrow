@@ -187,7 +187,7 @@ export default function Home() {
       <div className="absolute top-0 inset-x-0 h-80 bg-gradient-to-b from-indigo-50/50 to-transparent pointer-events-none" />
 
       {/* Main Scrollable Area */}
-      <div className="flex-1 overflow-y-auto px-5 pt-8 pb-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-5 pt-8 pb-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         
         {/* Header / Greeting */}
         <motion.header 
@@ -216,7 +216,7 @@ export default function Home() {
 
         {/* Balance Card - Clean Professional Design */}
         <motion.div
-          className="rounded-[28px] bg-white p-7 mb-8 relative overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100"
+          className="rounded-[28px] bg-white p-5 sm:p-7 mb-8 relative overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100"
           custom={0}
           initial="hidden"
           animate="visible"
@@ -242,24 +242,24 @@ export default function Home() {
               </motion.h2>
             </div>
             
-            <div className="flex gap-4 sm:gap-10 border-t border-slate-100 pt-5">
-              <div className="relative flex items-center gap-3">
+            <div className="flex border-t border-slate-100 pt-5 overflow-hidden">
+              <div className="flex-1 min-w-0 flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m19 12-7 7-7-7"/><path d="M12 19V5"/></svg>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-[11px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">Income</p>
-                  <p className="text-[15px] font-bold text-slate-900 tracking-tight">{formatMoney(totalReceived)}</p>
+                  <p className="text-[14px] font-bold text-slate-900 tracking-tight truncate">{formatMoney(totalReceived)}</p>
                 </div>
               </div>
-              <div className="w-px h-10 bg-slate-100" />
-              <div className="relative flex items-center gap-3">
+              <div className="w-px bg-slate-100 mx-3 shrink-0" />
+              <div className="flex-1 min-w-0 flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 5v14"/></svg>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-[11px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">Spent</p>
-                  <p className="text-[15px] font-bold text-slate-900 tracking-tight">{formatMoney(totalSent)}</p>
+                  <p className="text-[14px] font-bold text-slate-900 tracking-tight truncate">{formatMoney(totalSent)}</p>
                 </div>
               </div>
             </div>
@@ -334,7 +334,7 @@ export default function Home() {
                     variants={listItem}
                     exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
                     onClick={() => setSelectedTx(t)}
-                    className="flex items-center gap-4 bg-white p-4 rounded-[24px] border border-slate-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] relative overflow-hidden group cursor-pointer active:scale-[0.98] transition-all"
+                    className="flex items-center gap-3 bg-white p-4 rounded-[24px] border border-slate-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] relative overflow-hidden group cursor-pointer active:scale-[0.98] transition-all"
                   >
                     {/* Native Avatar/Icon */}
                     <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center shrink-0 ${
@@ -354,7 +354,7 @@ export default function Home() {
                     </div>
                     
                     {/* Content */}
-                    <div className="flex-1 min-w-0 pr-2">
+                    <div className="flex-1 min-w-0">
                       <p className="text-[15px] font-bold text-slate-900 truncate tracking-tight">{t.description}</p>
                       <p className="text-xs font-medium text-slate-500 mt-0.5 truncate flex items-center gap-1">
                         {t.party}
@@ -364,8 +364,8 @@ export default function Home() {
                     </div>
 
                     {/* Amount & Date */}
-                    <div className="text-right shrink-0">
-                       <p className={`text-[15px] font-bold tracking-tight ${t.type === "receive" ? "text-teal-600" : "text-slate-900"}`}>
+                    <div className="text-right shrink-0 max-w-[110px]">
+                       <p className={`text-[14px] font-bold tracking-tight truncate ${t.type === "receive" ? "text-teal-600" : "text-slate-900"}`}>
                          {t.type === "receive" ? "+" : "-"}{formatMoney(getTxTotal(t))}
                        </p>
                        <p className="text-[11px] text-slate-400 font-medium mt-1">
