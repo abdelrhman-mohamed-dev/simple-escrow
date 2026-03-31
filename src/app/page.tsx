@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
+import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 
 type TransactionType = "receive" | "send";
@@ -180,7 +181,7 @@ export default function Home() {
   const isReceive = flowType === "receive";
 
   return (
-    <main className="max-w-md mx-auto pt-safe min-h-dvh flex flex-col relative bg-slate-50 overscroll-none pb-20">
+    <main className="max-w-md mx-auto pt-safe min-h-dvh flex flex-col relative bg-slate-50 overscroll-none pb-20 overflow-x-hidden">
       
       {/* Background Decor (Subtle Native Feel) */}
       <div className="absolute top-0 inset-x-0 h-80 bg-gradient-to-b from-indigo-50/50 to-transparent pointer-events-none" />
@@ -230,18 +231,18 @@ export default function Home() {
                 </button>
               </p>
               <motion.h2
-                className={`text-[44px] font-black tracking-tighter flex items-center gap-1.5 ${netBalance < 0 ? "text-rose-500" : "text-slate-900"}`}
+                className={`text-[36px] sm:text-[44px] font-black tracking-tighter flex items-center gap-1.5 overflow-hidden ${netBalance < 0 ? "text-rose-500" : "text-slate-900"}`}
                 key={netBalance}
                 initial={{ scale: 1.05, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <span className={`text-[20px] font-bold mt-1 font-sans ${netBalance < 0 ? "text-rose-400" : "text-slate-400"}`}>EGP</span>
-                {netBalance < 0 && "-"}{Math.abs(netBalance).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                <span className={`text-[18px] sm:text-[20px] font-bold mt-1 font-sans ${netBalance < 0 ? "text-rose-400" : "text-slate-400"}`}>EGP</span>
+                <span className="truncate">{netBalance < 0 && "-"}{Math.abs(netBalance).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</span>
               </motion.h2>
             </div>
             
-            <div className="flex gap-10 border-t border-slate-100 pt-5">
+            <div className="flex gap-4 sm:gap-10 border-t border-slate-100 pt-5">
               <div className="relative flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m19 12-7 7-7-7"/><path d="M12 19V5"/></svg>
@@ -298,7 +299,7 @@ export default function Home() {
         >
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-xl font-bold text-slate-900 tracking-tight">Recent Activity</h3>
-            <button className="text-sm font-bold text-indigo-600 hover:text-indigo-700 active:scale-95 transition-transform">See All</button>
+            <Link href="/history" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 active:scale-95 transition-transform">See All</Link>
           </div>
 
           {loading && (
@@ -318,14 +319,15 @@ export default function Home() {
           )}
 
           {!loading && transactions.length > 0 && (
-            <motion.div 
+            <div className="max-h-[400px] overflow-y-auto -mx-1 px-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <motion.div
                className="space-y-3"
                variants={listStagger}
                initial="hidden"
                animate="visible"
             >
               <AnimatePresence mode="popLayout">
-                {transactions.map((t) => (
+                {transactions.slice(0, 5).map((t) => (
                   <motion.div
                     key={t.id}
                     layout="position"
@@ -376,6 +378,7 @@ export default function Home() {
                 ))}
               </AnimatePresence>
             </motion.div>
+            </div>
           )}
         </motion.div>
       </div>
