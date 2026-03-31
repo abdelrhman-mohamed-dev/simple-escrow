@@ -102,7 +102,7 @@ export default function HistoryPage() {
   }, {});
 
   return (
-    <main className="max-w-md mx-auto pt-safe min-h-dvh flex flex-col relative bg-slate-50 overscroll-none overflow-x-hidden">
+    <main className="w-full max-w-md mx-auto pt-safe min-h-dvh flex flex-col relative bg-slate-50 overscroll-none overflow-x-hidden">
       {/* Header */}
       <motion.header
         className="sticky top-0 z-30 bg-slate-50/80 backdrop-blur-xl px-5 pt-8 pb-4 border-b border-slate-100"

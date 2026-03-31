@@ -181,7 +181,7 @@ export default function Home() {
   const isReceive = flowType === "receive";
 
   return (
-    <main className="max-w-md mx-auto pt-safe min-h-dvh flex flex-col relative bg-slate-50 overscroll-none pb-20 overflow-x-hidden">
+    <main className="w-full max-w-md mx-auto pt-safe min-h-dvh flex flex-col relative bg-slate-50 overscroll-none pb-20 overflow-x-hidden">
       
       {/* Background Decor (Subtle Native Feel) */}
       <div className="absolute top-0 inset-x-0 h-80 bg-gradient-to-b from-indigo-50/50 to-transparent pointer-events-none" />
